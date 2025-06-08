@@ -3,17 +3,20 @@ import { Navigate } from 'react-router-dom';
 import { Users, Calendar, LayoutGrid, PieChart, Settings, Plus } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { useAuth } from '../context/AuthContext';
+// If AuthContext exports a default, use this:
+// import { AuthContext } from '../context/AuthContext';
 import { turfs, bookings } from '../data/mockData';
-
+import { AuthContext } from '../context/AuthContext';
+import { useContext } from 'react';
 export const AdminPage: React.FC = () => {
-  const { user, isAdmin } = useAuth();
+  const auth = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Redirect if not admin
-  if (!isAdmin) {
+  // Redirect if not authenticated or not admin
+  if (!auth || !auth.isAdmin) {
     return <Navigate to="/" replace />;
   }
+  const { user } = auth;
   
   const stats = {
     totalBookings: bookings.length,
@@ -454,7 +457,7 @@ export const AdminPage: React.FC = () => {
   );
 };
 
-const Star = (props: any) => (
+const Star = (props: React.SVGProps<SVGSVGElement>) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     viewBox="0 0 24 24" 
@@ -468,3 +471,6 @@ const Star = (props: any) => (
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
+
+export const useAuth = () => React.useContext(AuthContext);
+

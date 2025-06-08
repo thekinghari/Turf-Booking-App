@@ -1,3 +1,5 @@
+// You can now use AuthProvider and useAuth in this file as needed.
+// Export only components from this file to enable Fast Refresh.
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Booking } from '../types';
@@ -8,7 +10,7 @@ import { formatCurrency, getStatusColor } from '../lib/utils';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export const BookingsPage: React.FC = () => {
+const BookingsPage: React.FC = () => {
   const { user } = useAuth();
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
@@ -182,3 +184,5 @@ export const BookingsPage: React.FC = () => {
     </div>
   );
 };
+
+export default BookingsPage;

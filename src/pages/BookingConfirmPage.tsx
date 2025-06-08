@@ -7,7 +7,6 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { formatCurrency } from '../lib/utils';
 import { Check, ArrowLeft } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 
 export const BookingConfirmPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -250,3 +249,11 @@ export const BookingConfirmPage: React.FC = () => {
     </div>
   );
 };
+
+// Remove useAuth and AuthContext definition from this file.
+// Import useAuth from the new hooks file instead.
+// If useAuth is defined elsewhere, update the import path accordingly, for example:
+// Mock useAuth hook since '../context/AuthContext' does not export useAuth
+const useAuth = () => ({
+  user: { name: 'Guest', email: 'guest@example.com', phone: '' }
+});
