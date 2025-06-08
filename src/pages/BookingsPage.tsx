@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Booking } from '../types';
 import { bookings } from '../data/mockData';
-import { Card, CardContent } from '../components/ui/Card';
+import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { formatCurrency, getStatusColor } from '../lib/utils';
 import { Calendar, Clock, MapPin } from 'lucide-react';

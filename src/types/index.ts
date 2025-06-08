@@ -2,8 +2,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  phone?: string;
-  isAdmin: boolean;
+  phone: string;
+  isAdmin?: boolean;
+  avatarUrl?: string;
 }
 
 export interface Turf {
