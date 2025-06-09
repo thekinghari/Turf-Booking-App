@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Slot, Turf } from '../types';
-import { turfs } from '../data/mockData';
+import { Slot, Turf, Booking } from '../types';
+import { turfs, bookings } from '../data/mockData';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { formatCurrency } from '../lib/utils';
 import { Check, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const BookingConfirmPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,8 +44,25 @@ export const BookingConfirmPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     
+    // Create new booking
+    const newBooking: Booking = {
+      id: (bookings.length + 1).toString(),
+      userId: user?.id || '',
+      turfId: turf.id,
+      turfName: turf.name,
+      date: selectedSlot.date,
+      startTime: selectedSlot.startTime,
+      endTime: selectedSlot.endTime,
+      totalPrice: selectedSlot.price,
+      status: 'confirmed',
+      createdAt: new Date().toISOString()
+    };
+    
     // Simulate API call
     setTimeout(() => {
+      // Add new booking to bookings array
+      bookings.push(newBooking);
+      
       setLoading(false);
       setBookingSuccess(true);
     }, 1500);
@@ -212,7 +230,7 @@ export const BookingConfirmPage: React.FC = () => {
                         />
                       </div>
                       <h3 className="font-medium">{turf.name}</h3>
-                      <p className="text-sm text-gray-600">{turf.location}</p>
+                      <p className="text-sm text-gray-600">{turf.location.name} - {turf.location.address}</p>
                     </div>
                     
                     <div className="border-t border-gray-200 pt-3 mb-3">
@@ -249,11 +267,3 @@ export const BookingConfirmPage: React.FC = () => {
     </div>
   );
 };
-
-// Remove useAuth and AuthContext definition from this file.
-// Import useAuth from the new hooks file instead.
-// If useAuth is defined elsewhere, update the import path accordingly, for example:
-// Mock useAuth hook since '../context/AuthContext' does not export useAuth
-const useAuth = () => ({
-  user: { name: 'Guest', email: 'guest@example.com', phone: '' }
-});

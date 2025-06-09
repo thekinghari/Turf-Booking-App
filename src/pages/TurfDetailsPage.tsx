@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Star, ChevronLeft, ChevronRight, Info, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, Star, ChevronLeft, ChevronRight, Info, ArrowLeft, Navigation, Phone, Mail, Globe } from 'lucide-react';
 import { Turf, Slot } from '../types';
 import { turfs, slots } from '../data/mockData';
 import { formatCurrency, getAmenityIcon, getSportIcon } from '../lib/utils';
@@ -8,6 +8,13 @@ import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { BookingCalendar } from '../components/turf/BookingCalendar';
 import { useAuth } from '../context/AuthContext';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '400px'
+};
 
 export const TurfDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -59,6 +66,16 @@ export const TurfDetailsPage: React.FC = () => {
         calendar.scrollIntoView({ behavior: 'smooth' });
       }
     }
+  };
+
+  const handleGetDirections = () => {
+    if (!turf) return;
+    const { latitude, longitude } = turf.location.coordinates;
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
+  };
+
+  const handleSlotSelect = (slot: Slot) => {
+    setSelectedSlot(slot);
   };
 
   if (loading) {
@@ -136,11 +153,11 @@ export const TurfDetailsPage: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
-                  <span>{turf.location}</span>
+                  <span>{turf.location.name} - {turf.location.address}</span>
                 </div>
                 <div className="flex items-center">
                   <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />
-                  <span>{turf.rating} ({turf.reviews} reviews)</span>
+                  <span>{turf.rating} ({turf.reviews.length} reviews)</span>
                 </div>
               </div>
             </div>
@@ -225,63 +242,121 @@ export const TurfDetailsPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Booking Calendar */}
-            <div id="booking-calendar">
-              <h2 className="text-xl font-semibold mb-4">Book a Slot</h2>
-              <BookingCalendar 
-                slots={turfSlots} 
-                onSelectSlot={setSelectedSlot} 
-                selectedSlot={selectedSlot} 
-              />
-            </div>
-          </div>
+            {/* Location and Map */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold">Location</h2>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGetDirections}
+                    leftIcon={<Navigation className="h-4 w-4" />}
+                  >
+                    Get Directions
+                  </Button>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="flex items-start space-x-2 text-gray-600">
+                    <MapPin className="h-5 w-5 text-primary-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-gray-900">{turf.location.name}</p>
+                      <p>{turf.location.address}</p>
+                    </div>
+                  </div>
+                </div>
 
-          {/* Booking Summary */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Booking Summary</h2>
-                  
-                  {selectedSlot ? (
-                    <div className="mb-6">
-                      <div className="flex justify-between mb-2">
-                        <span className="text-gray-600">Date</span>
-                        <span className="font-medium">{selectedSlot.date}</span>
-                      </div>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-gray-600">Time</span>
-                        <span className="font-medium">{selectedSlot.startTime} - {selectedSlot.endTime}</span>
-                      </div>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-gray-600">Duration</span>
-                        <span className="font-medium">1 hour</span>
-                      </div>
-                      <div className="border-t border-gray-200 my-3"></div>
-                      <div className="flex justify-between">
-                        <span className="font-medium">Total</span>
-                        <span className="font-semibold text-primary-700">{formatCurrency(selectedSlot.price)}</span>
-                      </div>
+                <div className="h-[400px] rounded-lg overflow-hidden relative">
+                  {loading ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 p-4 rounded-lg text-center mb-6">
-                      <p className="text-gray-600">Select a time slot to see your booking details</p>
-                    </div>
+                    turf && (
+                      <MapContainer 
+                        center={[turf.location.coordinates.latitude, turf.location.coordinates.longitude]}
+                        zoom={15}
+                        scrollWheelZoom={false}
+                        style={mapContainerStyle}
+                      >
+                        <TileLayer
+                          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        <Marker position={[turf.location.coordinates.latitude, turf.location.coordinates.longitude]} />
+                      </MapContainer>
+                    )
                   )}
-                  
-                  <Button 
-                    fullWidth 
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Information */}
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-5 w-5 text-primary-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Phone</p>
+                      <p className="text-gray-600">+91 9876543210</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-5 w-5 text-primary-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Email</p>
+                      <p className="text-gray-600">contact@{turf.name.toLowerCase().replace(/\s+/g, '')}.com</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Globe className="h-5 w-5 text-primary-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Website</p>
+                      <a 
+                        href={`https://${turf.name.toLowerCase().replace(/\s+/g, '')}.com`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:underline"
+                      >
+                        {turf.name.toLowerCase().replace(/\s+/g, '')}.com
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Booking Section */}
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Book Now</h2>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 mb-1">Price per hour</p>
+                    <p className="text-2xl font-bold text-primary-600">{formatCurrency(turf.price)}</p>
+                  </div>
+                  <Button
                     onClick={handleBookNow}
-                    disabled={!selectedSlot}
+                    className="w-full"
+                    size="lg"
                   >
-                    {selectedSlot ? 'Continue to Booking' : 'Select a Time Slot'}
+                    {selectedSlot ? 'Proceed to Book' : 'Select a Time Slot'}
                   </Button>
-                  
-                  <p className="text-xs text-gray-500 text-center mt-4">
-                    You won't be charged until you complete your booking
-                  </p>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div id="booking-calendar">
+              <BookingCalendar
+                slots={turfSlots}
+                onSelectSlot={handleSlotSelect}
+                selectedSlot={selectedSlot}
+              />
             </div>
           </div>
         </div>

@@ -1,64 +1,89 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { AuthContextType, User } from '../types';
-import { users } from '../data/mockData';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User } from '../types';
+
+export interface AuthContextType {
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+}
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for saved user in localStorage
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    // Check for stored user data on mount
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-    setIsLoading(false);
   }, []);
 
-  const login = async (email: string) => {
-    // Simulate API call
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = users.find(u => u.email === email);
-        
-        // In a real app, we would validate the password here
-        if (foundUser) {
-          setUser(foundUser);
-          localStorage.setItem('user', JSON.stringify(foundUser));
-          resolve();
-        } else {
-          reject(new Error('Invalid email or password'));
+  const login = async (email: string, password: string) => {
+    try {
+      // Basic validation
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+
+      // Mock login - replace with actual API call
+      // In a real app, this would be an API call to verify credentials
+      const mockUser: User = {
+        id: '1',
+        email,
+        name: email.split('@')[0], // Use part of email as name for demo
+        role: 'user',
+        phone: '+1234567890',
+        avatarUrl: `https://i.pravatar.cc/150?u=${email}`,
+        favoriteSports: ['Football', 'Cricket'],
+        preferredLocations: ['North', 'Central'],
+        notificationPreferences: {
+          email: true,
+          sms: true,
+          push: true
         }
-      }, 800);
-    });
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+    } catch (error) {
+      throw new Error('Login failed');
+    }
   };
 
-  const register = async (name: string, email: string) => {
-    // Simulate API call
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        const existingUser = users.find(u => u.email === email);
-        
-        if (existingUser) {
-          reject(new Error('Email already in use'));
-        } else {
-          // In a real app, we would create a new user in the database
-          const newUser: User = {
-            id: `${users.length + 1}`,
-            name,
-            email,
-            phone: '', // Add a default or collected phone value here
-            isAdmin: false,
-          };
-          
-          setUser(newUser);
-          localStorage.setItem('user', JSON.stringify(newUser));
-          resolve();
+  const register = async (name: string, email: string, password: string) => {
+    try {
+      // Basic validation
+      if (!name || !email || !password) {
+        throw new Error('All fields are required');
+      }
+
+      // Mock registration - replace with actual API call
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9), // Generate random ID
+        email,
+        name,
+        role: 'user',
+        phone: '',
+        avatarUrl: `https://i.pravatar.cc/150?u=${email}`, // Generate avatar based on email
+        favoriteSports: [],
+        preferredLocations: [],
+        notificationPreferences: {
+          email: true,
+          sms: false,
+          push: true
         }
-      }, 800);
-    });
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+    } catch (error) {
+      throw new Error('Registration failed');
+    }
   };
 
   const logout = () => {
@@ -66,20 +91,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user');
   };
 
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    isAdmin: user?.isAdmin || false,
-    login,
-    register,
-    logout
-  };
-
-  if (isLoading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{
+      user,
+      login,
+      register,
+      logout,
+      isAuthenticated: !!user,
+      isAdmin: user?.role === 'admin'
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

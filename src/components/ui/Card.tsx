@@ -2,21 +2,13 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 
 interface CardProps {
-  className?: string;
   children: React.ReactNode;
-  onClick?: () => void;
+  className?: string;
 }
 
-export const Card: React.FC<CardProps> = ({ className, children, onClick }) => {
+export const Card: React.FC<CardProps> = ({ children, className }) => {
   return (
-    <div 
-      className={cn(
-        'bg-white rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg',
-        onClick && 'cursor-pointer',
-        className
-      )}
-      onClick={onClick}
-    >
+    <div className={cn('bg-white rounded-lg shadow-md', className)}>
       {children}
     </div>
   );
@@ -33,12 +25,9 @@ export const CardHeader: React.FC<{ className?: string; children: React.ReactNod
   );
 };
 
-export const CardContent: React.FC<{ className?: string; children: React.ReactNode }> = ({ 
-  className, 
-  children 
-}) => {
+export const CardContent: React.FC<CardProps> = ({ children, className }) => {
   return (
-    <div className={cn('p-4', className)}>
+    <div className={cn('p-6', className)}>
       {children}
     </div>
   );

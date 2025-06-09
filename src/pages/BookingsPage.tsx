@@ -1,7 +1,7 @@
 // You can now use AuthProvider and useAuth in this file as needed.
 // Export only components from this file to enable Fast Refresh.
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Booking } from '../types';
 import { bookings } from '../data/mockData';
 import { Card } from '../components/ui/Card';
@@ -12,21 +12,23 @@ import { useAuth } from '../context/AuthContext';
 
 const BookingsPage: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [userBookings, setUserBookings] = useState<Booking[]>([]);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const [loading, setLoading] = useState(true);
   
-  useEffect(() => {
+  const loadBookings = () => {
     if (user) {
-      // Simulate API call
-      setTimeout(() => {
-        // Filter bookings for current user
-        const filteredBookings = bookings.filter(booking => booking.userId === user.id);
-        setUserBookings(filteredBookings);
-        setLoading(false);
-      }, 500);
+      // Filter bookings for current user
+      const filteredBookings = bookings.filter(booking => booking.userId === user.id);
+      setUserBookings(filteredBookings);
+      setLoading(false);
     }
-  }, [user]);
+  };
+  
+  useEffect(() => {
+    loadBookings();
+  }, [user, location.key]); // Reload when location changes (new booking added)
   
   const currentDate = new Date();
   

@@ -92,7 +92,7 @@ export const HomePage: React.FC = () => {
           </p>
           <Button 
             size="lg" 
-            className="bg-white text-primary-700 hover:bg-primary-50"
+            className="bg-accent-500 text-white hover:bg-accent-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
             onClick={() => window.location.href = '/search'}
           >
             Find Turfs Near You

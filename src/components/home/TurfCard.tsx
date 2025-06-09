@@ -23,7 +23,7 @@ export const TurfCard: React.FC<TurfCardProps> = ({ turf }) => {
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
             <div className="flex items-center text-white space-x-2">
               <MapPin className="h-4 w-4" />
-              <span className="text-sm font-medium">{turf.location}</span>
+              <span className="text-sm font-medium">{turf.location.name}</span>
             </div>
           </div>
         </div>

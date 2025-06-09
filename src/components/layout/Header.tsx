@@ -20,7 +20,7 @@ export const Header: React.FC = () => {
     { name: 'My Bookings', path: '/bookings', icon: <Calendar className="h-5 w-5" /> },
   ];
 
-  if (user?.isAdmin) {
+  if (user?.role === 'admin') {
     navLinks.push({ name: 'Admin', path: '/admin', icon: <Settings className="h-5 w-5" /> });
   }
 
