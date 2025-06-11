@@ -16,6 +16,7 @@
     "kill-port": "^2.0.1",
     "mongoose": "^7.6.3",
     "nodemailer": "^6.10.1",
+    "serverless-http": "^3.2.0",
     "turf-booking-app": "file:..",
     "twilio": "^4.23.0",
     "validator": "^13.11.0"

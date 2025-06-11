@@ -3,11 +3,11 @@ import { Notification, Booking } from '../types';
 class NotificationService {
   private static instance: NotificationService;
   private notifications: Notification[] = [];
-  private apiBaseUrl: string;
+  // private apiBaseUrl: string; // Removed
 
   private constructor() {
-    // Use the correct API URL
-    this.apiBaseUrl = 'http://localhost:3001';
+    // Use the correct API URL - No longer needed, paths will be relative
+    // this.apiBaseUrl = 'http://localhost:3001'; // Removed
   }
 
   static getInstance(): NotificationService {
@@ -124,9 +124,10 @@ class NotificationService {
   }): Promise<void> {
     try {
       console.log('Sending email notification to:', data.to);
-      console.log('API URL:', `${this.apiBaseUrl}/api/notifications/email`);
+      // API URL is now relative, will be handled by Vite proxy or Netlify redirects
+      console.log('API URL: /api/notifications/email');
 
-      const response = await fetch(`${this.apiBaseUrl}/api/notifications/email`, {
+      const response = await fetch('/api/notifications/email', { // Changed to relative path
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,9 +156,10 @@ class NotificationService {
   }): Promise<void> {
     try {
       console.log('Sending WhatsApp notification to:', data.to);
-      console.log('API URL:', `${this.apiBaseUrl}/api/notifications/whatsapp`);
+      // API URL is now relative
+      console.log('API URL: /api/notifications/whatsapp');
 
-      const response = await fetch(`${this.apiBaseUrl}/api/notifications/whatsapp`, {
+      const response = await fetch('/api/notifications/whatsapp', { // Changed to relative path
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

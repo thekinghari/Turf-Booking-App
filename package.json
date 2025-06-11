@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:functions": "tsc netlify/functions/api.ts --outDir netlify/functions_build --esModuleInterop --resolveJsonModule --module esnext --target es2020 --moduleResolution node --skipLibCheck true && cp -r server/dist netlify/functions_build/server_dist"
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.6",
@@ -17,15 +18,18 @@
     "date-fns": "^2.30.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.344.0",
+    "mongoose": "^8.15.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.22.1",
+    "serverless-http": "^3.2.0",
     "tailwind-merge": "^2.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@types/leaflet": "^1.9.18",
+    "@types/mongoose": "^5.11.97",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

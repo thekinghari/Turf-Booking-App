@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
 import auth from '../middleware/auth';
 import { NotificationService } from '../services/notificationService';
-import config from '../config';
+import config from '../config/config';
 
 const router = express.Router();
 const notificationService = new NotificationService();
