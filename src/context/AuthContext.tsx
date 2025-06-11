@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 
+const API_URL = 'http://localhost:5000/api';
+
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
@@ -16,78 +18,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check for stored user data on mount
+    // Check for stored token and user data on mount
+    const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    
+    if (token && storedUser) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      // Basic validation
-      if (!email || !password) {
-        throw new Error('Email and password are required');
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Login failed');
       }
 
-      // Mock login - replace with actual API call
-      // In a real app, this would be an API call to verify credentials
-      const mockUser: User = {
-        id: '1',
-        email,
-        name: email.split('@')[0], // Use part of email as name for demo
-        role: 'user',
-        phone: '+1234567890',
-        avatarUrl: `https://i.pravatar.cc/150?u=${email}`,
-        favoriteSports: ['Football', 'Cricket'],
-        preferredLocations: ['North', 'Central'],
-        notificationPreferences: {
-          email: true,
-          sms: true,
-          push: true
-        }
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      const data = await response.json();
+      setUser(data.user);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
     } catch (error) {
-      throw new Error('Login failed');
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      // Basic validation
-      if (!name || !email || !password) {
-        throw new Error('All fields are required');
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Registration failed');
       }
 
-      // Mock registration - replace with actual API call
-      const newUser: User = {
-        id: Math.random().toString(36).substr(2, 9), // Generate random ID
-        email,
-        name,
-        role: 'user',
-        phone: '',
-        avatarUrl: `https://i.pravatar.cc/150?u=${email}`, // Generate avatar based on email
-        favoriteSports: [],
-        preferredLocations: [],
-        notificationPreferences: {
-          email: true,
-          sms: false,
-          push: true
-        }
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      const data = await response.json();
+      setUser(data.user);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
     } catch (error) {
-      throw new Error('Registration failed');
+      console.error('Registration error:', error);
+      throw error;
     }
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
   };
 

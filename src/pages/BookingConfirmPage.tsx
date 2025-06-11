@@ -8,6 +8,7 @@ import { Input } from '../components/ui/Input';
 import { formatCurrency } from '../lib/utils';
 import { Check, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { notificationService } from '../services/NotificationService';
 
 export const BookingConfirmPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ export const BookingConfirmPage: React.FC = () => {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState(user?.phone || '');
   const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
   
   // Get the selected slot from location state
   const selectedSlot = location.state?.selectedSlot as Slot | undefined;
@@ -43,29 +45,64 @@ export const BookingConfirmPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
-    // Create new booking
-    const newBooking: Booking = {
-      id: (bookings.length + 1).toString(),
-      userId: user?.id || '',
-      turfId: turf.id,
-      turfName: turf.name,
-      date: selectedSlot.date,
-      startTime: selectedSlot.startTime,
-      endTime: selectedSlot.endTime,
-      totalPrice: selectedSlot.price,
-      status: 'confirmed',
-      createdAt: new Date().toISOString()
-    };
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      if (!user?.email) {
+        throw new Error('Email address is required for booking confirmation');
+      }
+
+      if (!phoneNumber) {
+        throw new Error('Phone number is required for booking confirmation');
+      }
+
+      // Create new booking
+      const newBooking: Booking = {
+        id: (bookings.length + 1).toString(),
+        userId: user?.id || '',
+        turfId: turf.id,
+        turfName: turf.name,
+        date: selectedSlot.date,
+        startTime: selectedSlot.startTime,
+        endTime: selectedSlot.endTime,
+        totalPrice: selectedSlot.price,
+        status: 'confirmed',
+        createdAt: new Date().toISOString()
+      };
+      
+      console.log('Creating new booking:', newBooking);
+      
       // Add new booking to bookings array
       bookings.push(newBooking);
       
+      // Send notifications
+      try {
+        console.log('Sending notifications for booking:', {
+          bookingId: newBooking.id,
+          userEmail: user.email,
+          userPhone: phoneNumber
+        });
+
+        await notificationService.sendBookingConfirmation(
+          newBooking,
+          user.email,
+          phoneNumber
+        );
+
+        console.log('Notifications sent successfully');
+      } catch (notificationError) {
+        console.error('Notification error:', notificationError);
+        // Don't throw the error, just log it and continue
+        // The booking is still valid even if notifications fail
+      }
+      
       setLoading(false);
       setBookingSuccess(true);
-    }, 1500);
+    } catch (error) {
+      console.error('Booking error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to confirm booking. Please try again.');
+      setLoading(false);
+    }
   };
   
   if (bookingSuccess) {
@@ -130,6 +167,12 @@ export const BookingConfirmPage: React.FC = () => {
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Confirm Your Booking</h1>
           
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Booking Form */}
             <div className="md:col-span-2">

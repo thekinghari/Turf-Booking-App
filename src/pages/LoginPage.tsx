@@ -29,11 +29,14 @@ export const LoginPage: React.FC = () => {
     }
     
     setLoading(true);
+    console.log('Submitting login form:', { email });
     
     try {
       await login(email, password);
+      console.log('Login successful, navigating to:', from);
       navigate(from, { replace: true });
     } catch (err) {
+      console.error('Login error in page:', err);
       setError((err as Error).message);
       setLoading(false);
     }

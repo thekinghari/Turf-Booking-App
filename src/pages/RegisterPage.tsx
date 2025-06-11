@@ -1,10 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useAuth } from '../context/AuthContext';
+
+interface PasswordRequirement {
+  id: string;
+  text: string;
+  validator: (password: string) => boolean;
+}
+
+const passwordRequirements: PasswordRequirement[] = [
+  {
+    id: 'length',
+    text: 'Password must be at least 8 characters long',
+    validator: (password) => password.length >= 8
+  },
+  {
+    id: 'uppercase',
+    text: 'Password must contain at least one uppercase letter',
+    validator: (password) => /[A-Z]/.test(password)
+  },
+  {
+    id: 'lowercase',
+    text: 'Password must contain at least one lowercase letter',
+    validator: (password) => /[a-z]/.test(password)
+  },
+  {
+    id: 'number',
+    text: 'Password must contain at least one number',
+    validator: (password) => /[0-9]/.test(password)
+  },
+  {
+    id: 'special',
+    text: 'Password must contain at least one special character (@$!%*?&)',
+    validator: (password) => /[@$!%*?&]/.test(password)
+  }
+];
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +50,21 @@ export const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | undefined>(undefined);
   
+  useEffect(() => {
+    if (password.length > 0) {
+      const failedRequirement = passwordRequirements.find(req => !req.validator(password));
+      setPasswordError(failedRequirement ? failedRequirement.text : undefined);
+    } else {
+      setPasswordError(undefined);
+    }
+  }, [password]);
+
+  const isPasswordValid = () => {
+    return passwordRequirements.every(req => req.validator(password));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -32,8 +80,8 @@ export const RegisterPage: React.FC = () => {
       return;
     }
     
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (!isPasswordValid()) {
+      setError('Please ensure your password meets all requirements');
       return;
     }
     
@@ -87,6 +135,8 @@ export const RegisterPage: React.FC = () => {
                 placeholder="Enter your full name"
                 leftIcon={<User className="h-5 w-5" />}
                 required
+                minLength={2}
+                maxLength={50}
               />
               
               <Input
@@ -107,6 +157,7 @@ export const RegisterPage: React.FC = () => {
                 placeholder="Create a password"
                 leftIcon={<Lock className="h-5 w-5" />}
                 required
+                error={passwordError}
               />
               
               <Input
@@ -117,6 +168,7 @@ export const RegisterPage: React.FC = () => {
                 placeholder="Confirm your password"
                 leftIcon={<Lock className="h-5 w-5" />}
                 required
+                error={password !== confirmPassword && confirmPassword.length > 0 ? 'Passwords do not match' : undefined}
               />
               
               <div>
@@ -125,6 +177,7 @@ export const RegisterPage: React.FC = () => {
                   fullWidth
                   size="lg"
                   isLoading={loading}
+                  disabled={!isPasswordValid()}
                 >
                   Create Account
                 </Button>

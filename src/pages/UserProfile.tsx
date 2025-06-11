@@ -77,13 +77,11 @@ export const UserProfile: React.FC = () => {
       await updateProfile(formData);
       setIsEditing(false);
       // Send notification about profile update
-      await notificationService.sendNotification({
-        userId: profile!.id,
-        type: 'system',
-        title: 'Profile Updated',
-        message: 'Your profile has been successfully updated.',
-        read: false,
-      });
+      await notificationService.sendProfileUpdateNotification(
+        profile!.id,
+        formData.email,
+        formData.phone
+      );
     } catch (error) {
       console.error('Error updating profile:', error);
     }
