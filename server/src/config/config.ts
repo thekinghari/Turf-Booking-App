@@ -33,7 +33,7 @@ interface Config {
 }
 
 const config: Config = {
-  port: parseInt(process.env.PORT || '3003'),
+  port: 3003,
   mongoUri: process.env.MONGODB_URI || process.env.VITE_MONGODB_URI || 'mongodb://localhost:27017/turf-booking',
   corsOrigin: process.env.CORS_ORIGIN || process.env.VITE_CORS_ORIGIN || 'http://localhost:5173',
   emailConfig: {

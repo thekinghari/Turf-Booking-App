@@ -2,11 +2,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  password?: string;
-  phone?: string;
-  isAdmin?: boolean;
-  avatarUrl?: string;
   role: 'user' | 'admin';
+  phone?: string;
+  avatarUrl?: string;
   favoriteSports?: string[];
   preferredLocations?: string[];
   notificationPreferences?: {

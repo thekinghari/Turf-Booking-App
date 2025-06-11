@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
 import auth from '../middleware/auth';
 import { NotificationService } from '../services/notificationService';
+import config from '../config';
 
 const router = express.Router();
 const notificationService = new NotificationService();
@@ -23,27 +24,40 @@ router.post('/register', async (req: Request, res: Response) => {
     const user = new User({ name, email, password, phone });
     await user.save();
 
-    // Send welcome email
-    await notificationService.sendEmail({
-      to: email,
-      subject: 'Welcome to TurfBook!',
-      text: `Welcome to TurfBook!\n\nThank you for registering.\n\nYour account has been created successfully.\n\nName: ${name}\nEmail: ${email}\n\nBest regards,\nTurfBook Team`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #2563eb;">Welcome to TurfBook!</h2>
-          <p>Thank you for registering.</p>
-          <p>Your account has been created successfully.</p>
-          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-          </div>
-          <p>Best regards,</p>
-          <p>TurfBook Team</p>
-        </div>
-      `
-    });
+    // Send welcome email only if email configuration is available
+    if (config.emailConfig.host && config.emailConfig.user && config.emailConfig.pass) {
+      try {
+        await notificationService.sendEmail({
+          to: email,
+          subject: 'Welcome to TurfBook!',
+          text: `Welcome to TurfBook!\n\nThank you for registering.\n\nYour account has been created successfully.\n\nName: ${name}\nEmail: ${email}\n\nBest regards,\nTurfBook Team`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #2563eb;">Welcome to TurfBook!</h2>
+              <p>Thank you for registering.</p>
+              <p>Your account has been created successfully.</p>
+              <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+              </div>
+              <p>Best regards,</p>
+              <p>TurfBook Team</p>
+            </div>
+          `
+        });
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Continue with registration even if email fails
+      }
+    }
 
-    res.status(201).json({ message: 'User registered successfully.' });
+    // Generate token for immediate login
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '7d' });
+    res.status(201).json({ 
+      message: 'User registered successfully.',
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
   } catch (err: any) {
     console.error('Registration error:', err);
     if (err.name === 'ValidationError') {

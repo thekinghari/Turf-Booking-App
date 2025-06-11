@@ -15,37 +15,37 @@ interface WhatsAppOptions {
 }
 
 export class NotificationService {
-  private transporter: nodemailer.Transporter | null = null;
-  private client: twilio.Twilio | null = null;
+  private emailTransporter: nodemailer.Transporter | null = null;
+  private twilioClient: twilio.Twilio | null = null;
 
   constructor() {
-    // Initialize email transporter with SendGrid
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY || ''
-      }
-    });
+    // Initialize email transporter if credentials are available
+    if (config.emailConfig.host && config.emailConfig.user && config.emailConfig.pass) {
+      this.emailTransporter = nodemailer.createTransport({
+        host: config.emailConfig.host,
+        port: config.emailConfig.port,
+        secure: false,
+        auth: {
+          user: config.emailConfig.user,
+          pass: config.emailConfig.pass
+        }
+      });
+    }
 
-    // Initialize Twilio client only if configured
-    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-      this.client = twilio(
-        process.env.TWILIO_ACCOUNT_SID,
-        process.env.TWILIO_AUTH_TOKEN
+    // Initialize Twilio client if credentials are available
+    if (config.whatsappConfig.accountSid && config.whatsappConfig.authToken) {
+      this.twilioClient = twilio(
+        config.whatsappConfig.accountSid,
+        config.whatsappConfig.authToken
       );
-    } else {
-      console.warn('WhatsApp service is not configured');
     }
   }
 
   async initialize(): Promise<void> {
     // Test email connection
-    if (this.transporter) {
+    if (this.emailTransporter) {
       try {
-        await this.transporter.verify();
+        await this.emailTransporter.verify();
         console.log('Email service verified successfully');
       } catch (error) {
         console.error('Email service verification failed:', error);
@@ -55,9 +55,9 @@ export class NotificationService {
     }
 
     // Test WhatsApp connection if configured
-    if (this.client && process.env.TWILIO_WHATSAPP_NUMBER) {
+    if (this.twilioClient && process.env.TWILIO_WHATSAPP_NUMBER) {
       try {
-        const message = await this.client.messages.create({
+        const message = await this.twilioClient.messages.create({
           from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,
           to: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,
           body: 'WhatsApp service test message'
@@ -69,51 +69,44 @@ export class NotificationService {
     }
   }
 
-  async sendEmail(options: EmailOptions): Promise<void> {
-    if (!this.transporter) {
-      console.error('Email service is not initialized');
-      throw new Error('Email service is not configured');
+  async sendEmail({ to, subject, text, html }: { to: string; subject: string; text: string; html?: string }) {
+    if (!this.emailTransporter) {
+      console.warn('Email service not configured');
+      return;
     }
 
     try {
-      const fromEmail = process.env.SMTP_FROM || 'noreply@turfbook.com';
-      
-      await this.transporter.sendMail({
-        from: fromEmail,
-        to: options.to,
-        subject: options.subject,
-        text: options.text,
-        html: options.html
+      const info = await this.emailTransporter.sendMail({
+        from: config.emailConfig.from,
+        to,
+        subject,
+        text,
+        html
       });
-      console.log('Email sent successfully to:', options.to);
+      console.log('Email sent:', info.response);
+      return info;
     } catch (error) {
-      console.error('Failed to send email:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        config: {
-          host: 'smtp.sendgrid.net',
-          port: 587,
-          from: process.env.SMTP_FROM || 'noreply@turfbook.com'
-        }
-      });
+      console.error('Failed to send email:', error);
       throw error;
     }
   }
 
-  async sendWhatsApp(options: WhatsAppOptions): Promise<void> {
-    if (!this.client) {
-      throw new Error('WhatsApp service is not configured');
+  async sendWhatsApp({ to, message }: { to: string; message: string }) {
+    if (!this.twilioClient) {
+      console.warn('WhatsApp service not configured');
+      return;
     }
 
     try {
-      const message = await this.client.messages.create({
-        from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,
-        to: `whatsapp:${options.to}`,
-        body: options.message,
+      const twilioMessage = await this.twilioClient.messages.create({
+        from: `whatsapp:${config.whatsappConfig.whatsappFrom}`,
+        to: `whatsapp:${to}`,
+        body: message
       });
-      console.log(`WhatsApp message sent to ${options.to}`);
+      console.log('WhatsApp message sent:', twilioMessage.sid);
+      return twilioMessage;
     } catch (error) {
-      console.error('Error sending WhatsApp message:', error);
+      console.error('Failed to send WhatsApp message:', error);
       throw error;
     }
   }
