@@ -21,12 +21,12 @@ export class NotificationService {
   constructor() {
     // Initialize email transporter with SendGrid
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 587,
-      secure: false,
+      host: config.emailConfig.host,
+      port: config.emailConfig.port,
+      secure: false, // true for 465, false for other ports
       auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY || ''
+        user: config.emailConfig.user, // Directly use from config
+        pass: config.emailConfig.apiKey // Use apiKey from config
       }
     });
 
@@ -76,10 +76,9 @@ export class NotificationService {
     }
 
     try {
-      const fromEmail = process.env.SMTP_FROM || 'noreply@turfbook.com';
-      
+      // Use fromEmail from the central configuration
       await this.transporter.sendMail({
-        from: fromEmail,
+        from: config.emailConfig.fromEmail,
         to: options.to,
         subject: options.subject,
         text: options.text,
@@ -87,16 +86,21 @@ export class NotificationService {
       });
       console.log('Email sent successfully to:', options.to);
     } catch (error) {
-      console.error('Failed to send email:', {
+      const errorDetails = {
+        recipient: options.to,
+        subject: options.subject,
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
-        config: {
-          host: 'smtp.sendgrid.net',
-          port: 587,
-          from: process.env.SMTP_FROM || 'noreply@turfbook.com'
-        }
-      });
-      throw error;
+        smtpConfig: { // Log relevant parts of the config used for the attempt
+          host: config.emailConfig.host, // Directly use from central config
+          port: config.emailConfig.port, // Directly use from central config
+          user: config.emailConfig.user,   // Directly use from central config (user, not apiKey)
+          from: config.emailConfig.fromEmail // The intended from address
+        },
+        // fullError: error // Optionally log the full error object if it's not too verbose
+      };
+      console.error('Failed to send email:', errorDetails);
+      throw error; // Re-throw the error as before
     }
   }
 

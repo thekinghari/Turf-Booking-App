@@ -21,9 +21,9 @@ interface Config {
   emailConfig: {
     host: string;
     port: number;
-    user: string;
-    pass: string;
-    from: string;
+    user: string; // Expected to be 'apikey' for SendGrid
+    apiKey: string; // SendGrid API Key
+    fromEmail: string; // Sender's email address
   };
   whatsappConfig: {
     accountSid: string;
@@ -39,9 +39,9 @@ const config: Config = {
   emailConfig: {
     host: process.env.SMTP_HOST || process.env.VITE_SMTP_HOST || '',
     port: parseInt(process.env.SMTP_PORT || process.env.VITE_SMTP_PORT || '587'),
-    user: process.env.SMTP_USER || process.env.VITE_SMTP_USER || '',
-    pass: process.env.SMTP_PASS || process.env.VITE_SMTP_PASS || '',
-    from: process.env.SMTP_FROM || process.env.VITE_SMTP_FROM || ''
+    user: process.env.SMTP_USER || process.env.VITE_SMTP_USER || 'apikey', // Default to 'apikey' for SendGrid
+    apiKey: process.env.SENDGRID_API_KEY || process.env.VITE_SENDGRID_API_KEY || '',
+    fromEmail: process.env.SENDGRID_FROM_EMAIL || process.env.VITE_SENDGRID_FROM_EMAIL || ''
   },
   whatsappConfig: {
     accountSid: process.env.TWILIO_ACCOUNT_SID || process.env.VITE_TWILIO_ACCOUNT_SID || '',
@@ -58,9 +58,9 @@ const validateConfig = () => {
   if (!config.mongoUri) missing.push('MONGODB_URI');
   if (!config.emailConfig.host) missing.push('SMTP_HOST');
   if (!config.emailConfig.port) missing.push('SMTP_PORT');
-  if (!config.emailConfig.user) missing.push('SMTP_USER');
-  if (!config.emailConfig.pass) missing.push('SMTP_PASS');
-  if (!config.emailConfig.from) missing.push('SMTP_FROM');
+  if (!config.emailConfig.user) missing.push('SMTP_USER'); // nodemailer still uses this
+  if (!config.emailConfig.apiKey) missing.push('SENDGRID_API_KEY');
+  if (!config.emailConfig.fromEmail) missing.push('SENDGRID_FROM_EMAIL');
   if (!config.whatsappConfig.accountSid) missing.push('TWILIO_ACCOUNT_SID');
   if (!config.whatsappConfig.authToken) missing.push('TWILIO_AUTH_TOKEN');
   if (!config.whatsappConfig.whatsappFrom) missing.push('TWILIO_WHATSAPP_FROM');

@@ -115,8 +115,8 @@ export const BookingConfirmPage: React.FC = () => {
                 <Check className="h-8 w-8 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
-              <p className="text-gray-600 mb-6">
-                Your booking has been confirmed. We've sent a confirmation to your email address.
+              <p className="mt-4 text-green-700 bg-green-100 p-3 rounded mb-6">
+                Your booking has been successfully processed. You will receive a confirmation email shortly with all the details.
               </p>
               
               <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
