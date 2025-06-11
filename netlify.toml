@@ -1,0 +1,12 @@
+[build]
+  base = "" # Root of the repository
+  publish = "dist" # Frontend build output directory
+  command = "npm run build" # Command to build the frontend
+
+[functions]
+  directory = "server/src" # Backend functions directory
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 
-const API_URL = 'http://localhost:3003/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export interface AuthContextType {
   user: User | null;

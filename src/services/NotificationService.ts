@@ -7,7 +7,7 @@ class NotificationService {
 
   private constructor() {
     // Use the correct API URL
-    this.apiBaseUrl = 'http://localhost:3001';
+    this.apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
   }
 
   static getInstance(): NotificationService {
@@ -124,9 +124,9 @@ class NotificationService {
   }): Promise<void> {
     try {
       console.log('Sending email notification to:', data.to);
-      console.log('API URL:', `${this.apiBaseUrl}/api/notifications/email`);
+      console.log('API URL:', `${this.apiBaseUrl}/notifications/email`);
 
-      const response = await fetch(`${this.apiBaseUrl}/api/notifications/email`, {
+      const response = await fetch(`${this.apiBaseUrl}/notifications/email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,9 +155,9 @@ class NotificationService {
   }): Promise<void> {
     try {
       console.log('Sending WhatsApp notification to:', data.to);
-      console.log('API URL:', `${this.apiBaseUrl}/api/notifications/whatsapp`);
+      console.log('API URL:', `${this.apiBaseUrl}/notifications/whatsapp`);
 
-      const response = await fetch(`${this.apiBaseUrl}/api/notifications/whatsapp`, {
+      const response = await fetch(`${this.apiBaseUrl}/notifications/whatsapp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
